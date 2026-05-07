@@ -100,7 +100,7 @@ jobs:
       with:
         ccache: 'true'
         prefix: ${{ github.workspace }}/openwrt
-        clean: ${{ inputs.nocache }}
+        clean: ${{ inputs.nocache || 'false' }}
         mixkey: 'x86-64'
 
     - name: Load custom feeds
