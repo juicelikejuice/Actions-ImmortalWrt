@@ -85,6 +85,7 @@ jobs:
     - name: Setup latest stable Go
       uses: actions/setup-go@v6
       with:
+        go-version: 'stable'
         check-latest: true
 
     - name: Clone source code
