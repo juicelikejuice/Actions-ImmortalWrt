@@ -37,15 +37,15 @@ on:
         required: false
         default: ImmortalWrt
       feeds_conf:
-        description: 'Custom feeds.conf.default file'
+        description: 'Custom feeds file'
         required: false
         default: 'feeds.conf.default'
       config:
-        description: 'Custom .config file'
+        description: 'Custom build config'
         required: false
         default: '.config'
       kernel_config:
-        description: 'Custom kernel config file'
+        description: 'Custom kernel build config'
         required: false
         default: 'config-6.12'
       artifact:
@@ -59,7 +59,7 @@ on:
         default: false
         type: boolean
       bindir:
-        description: 'Upload bin directory'
+        description: 'Upload bin to artifact'
         required: false
         default: false
         type: boolean
