@@ -31,8 +31,8 @@ env:
   BRANCH_NAME: ImmortalWrt
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .config
-  BEFORE_FEED_SH: before-install-feed.sh
-  AFTER_FEED_SH: after-install-feed.sh
+  BEFORE_FEED_SH: before-installing-feed.sh
+  AFTER_FEED_SH: after-installing-feed.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
