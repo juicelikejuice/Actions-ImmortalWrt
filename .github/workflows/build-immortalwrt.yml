@@ -24,18 +24,39 @@ on:
         required: false
         default: false
         type: boolean
+      repo:
+        description: 'Repo URL'
+        required: false
+        default: https://github.com/immortalwrt/immortalwrt
+      branch:
+        description: 'Repo Branch'
+        required: false
+        default: openwrt-25.12
+      name:
+        description: 'Firmware Name'
+        required: false
+        default: ImmortalWrt
+      artifact:
+        description: 'Upload firmware to artifact'
+        required: false
+        default: true
+        type: boolean
+      release:
+        description: 'Upload firmware to release'
+        required: false
+        default: false
+        type: boolean
+      bindir:
+        description: 'Upload bin directory'
+        required: false
+        default: false
+        type: boolean
 
 env:
-  REPO_URL: https://github.com/immortalwrt/immortalwrt
-  REPO_BRANCH: openwrt-25.12
-  BRANCH_NAME: ImmortalWrt
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .config
   BEFORE_FEED_SH: before-installing-feed.sh
   AFTER_FEED_SH: after-installing-feed.sh
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
-  UPLOAD_RELEASE: true
   TZ: UTC
 
 jobs:
@@ -68,7 +89,7 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
-        git clone --depth=1 $REPO_URL -b $REPO_BRANCH openwrt
+        git clone --depth=1 ${{ inputs.repo }} -b ${{ inputs.branch }} openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Free up disk space
@@ -156,14 +177,14 @@ jobs:
 
     - name: Upload bin directory
       uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
+      if: steps.compile.outputs.status == 'success' && inputs.bindir == 'true' && !cancelled()
       with:
-        name: ${{ env.BRANCH_NAME }}_bin_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}
+        name: ${{ inputs.name }}_bin_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}
         path: openwrt/bin
 
     - name: Get environment path
       id: environment
-      if: env.UPLOAD_BIN_DIR == 'true' && !cancelled()
+      if: inputs.bindir == 'true' && !cancelled()
       run: |
         cd openwrt/bin/
         echo "WORKSPACE_DIR=$PWD" >> $GITHUB_ENV
@@ -178,7 +199,7 @@ jobs:
         type: tar
         path: packages/
         directory: ${{ env.UPLOAD_PATH }}/
-        filename: ${{ env.UPLOAD_PATH }}/${{ env.BRANCH_NAME }}_firmware_kernel_packages_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}.tar.gz
+        filename: ${{ env.UPLOAD_PATH }}/${{ inputs.name }}_firmware_kernel_packages_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}.tar.gz
 
     - name: Compressed firmware packages
       uses: thedoctor0/zip-release@master
@@ -187,11 +208,11 @@ jobs:
         type: tar
         path: packages/
         directory: ${{ env.WORKSPACE_DIR }}/
-        filename: ${{ env.UPLOAD_PATH }}/${{ env.BRANCH_NAME }}_firmware_packages_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}.tar.gz
+        filename: ${{ env.UPLOAD_PATH }}/${{ inputs.name }}_firmware_packages_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}.tar.gz
 
     - name: Organize files
       id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
+      if: inputs.artifact == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
       run: |
         cd openwrt/bin/targets/*/*
         rm -rf packages
@@ -202,16 +223,16 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: ${{ env.BRANCH_NAME }}_firmware_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}
+        name: ${{ inputs.name }}_firmware_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}
         path: ${{ env.FIRMWARE }}
 
     - name: Upload firmware to release
       uses: softprops/action-gh-release@v2
-      if: env.UPLOAD_RELEASE == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
+      if: inputs.release == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         files: ${{ env.FIRMWARE }}/*
-        name: ${{ env.BRANCH_NAME }} ${{ env.DEVICE_NAME }}
-        tag_name: ${{ env.BRANCH_NAME }}_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}
+        name: ${{ inputs.name }} ${{ env.DEVICE_NAME }}
+        tag_name: ${{ inputs.name }}_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}
 
