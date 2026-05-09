@@ -43,50 +43,26 @@ jobs:
     runs-on: ubuntu-slim
 
     steps:
-    # - name: Free up disk space
-    #   uses: jlumbroso/free-disk-space@main
-    #   with:
-    #     tool-cache: false
-    #     android: true
-    #     dotnet: true
-    #     haskell: true
-    #     large-packages: true
-    #     docker-images: true
-    #     swap-storage: false
-
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
         sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
-        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        sudo rm -rf /etc/apt/sources.list.d/*
         sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
-        sudo -E apt remove -y docker-ce-cli docker-buildx-plugin docker-compose-plugin --fix-missing
-        sudo -E apt -y autoremove --purge
-        sudo rm -rf /usr/bin/go /usr/bin/gofmt /usr/lib/go-* /usr/lib/go[0-9]*
+        sudo -apt -y autoremove golang-* --purge
+        sudo rm -rf /usr/bin/go /usr/bin/gofmt /usr/lib/go-* /usr/lib/go-[0-9]*
         sudo mkdir -p /workdir
-        # Fix the permissions by using $(whoami)
         sudo chown -R $(whoami):$(whoami) /workdir
-
-    # - name: Free up disk space again
-    #   uses: jlumbroso/free-disk-space@main
-    #   with:
-    #     tool-cache: true
-    #     android: false
-    #     dotnet: false
-    #     haskell: false
-    #     large-packages: false
-    #     docker-images: false
-    #     swap-storage: true
-
-    - name: Checkout
-      uses: actions/checkout@main
 
     - name: Setup latest stable Go
       uses: actions/setup-go@v6
       with:
         go-version: 'stable'
         cache: false
+
+    - name: Checkout
+      uses: actions/checkout@main
 
     - name: Clone source code
       working-directory: /workdir
@@ -95,14 +71,15 @@ jobs:
         git clone --depth=1 $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
-    # - name: Free up disk space again again
-    #   env:
-    #     DEBIAN_FRONTEND: noninteractive
-    #   run: |
-    #     sudo mkdir -p -m 777 /mnt/openwrt/dl /mnt/openwrt/staging_dir /mnt/openwrt/build_dir
-    #     ln -sf /mnt/openwrt/dl openwrt/dl
-    #     ln -sf /mnt/openwrt/staging_dir openwrt/staging_dir
-    #     ln -sf /mnt/openwrt/build_dir openwrt/build_dir
+    - name: Free up disk space
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo mkdir -p -m 777 /mnt/openwrt/dl /mnt/openwrt/staging_dir /mnt/openwrt/build_dir
+        rm -rf openwrt/dl openwrt/staging_dir openwrt/build_dir
+        ln -sf /mnt/openwrt/dl openwrt/dl
+        ln -sf /mnt/openwrt/staging_dir openwrt/staging_dir
+        ln -sf /mnt/openwrt/build_dir openwrt/build_dir
 
     - name: Cache
       uses: stupidloud/cachewrtbuild@main
