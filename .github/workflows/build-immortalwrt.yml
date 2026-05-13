@@ -74,17 +74,6 @@ jobs:
     runs-on: ubuntu-slim
 
     steps:
-    - name: Free up disk space
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: false
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
-    
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -92,30 +81,19 @@ jobs:
         sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
         sudo apt update
         sudo apt -y install erofs-utils tmux
+        sudo apt-mark unhold azure-cli distro-info-data docker-ce-cli dpkg dpkg-dev git git-man libdpkg-perl libnghttp2-14 libpng16-16t64 powershell xxd
         sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
-        sudo apt -y install erofs-utils
         sudo apt -y autoremove golang-* --purge
         sudo rm -rf /usr/bin/go /usr/bin/gofmt /usr/lib/go-* /usr/lib/go-[0-9]*
         sudo mkdir -p /workdir
         sudo chown -R $(whoami):$(whoami) /workdir
 
-    - name: Setup latest stable Go
+    - name: Setup go
       uses: actions/setup-go@main
       with:
         go-version: 'stable'
         cache: false
-
-    - name: Free up disk space again
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: true
-        android: false
-        dotnet: false
-        haskell: false
-        large-packages: false
-        docker-images: false
-        swap-storage: false
-
+        
     - name: Checkout
       uses: actions/checkout@main
 
@@ -126,7 +104,7 @@ jobs:
         git clone --depth=1 ${{ inputs.repo }} -b ${{ inputs.branch }} openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
-    - name: Free up disk space again again
+    - name: Free up disk space
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
