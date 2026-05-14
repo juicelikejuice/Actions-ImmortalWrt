@@ -141,8 +141,8 @@ jobs:
       with:
         ccache: 'true'
         prefix: ${{ github.workspace }}/openwrt
-        clean: ${{ inputs.nocache || 'false' }}
-        mixkey: 'x86-64'
+        clean: '${{ inputs.nocache }}'
+        mixkey: x86-64
 
     - name: Load custom feeds
       run: |
@@ -185,7 +185,7 @@ jobs:
 
     - name: SSH connection to Actions
       uses: owenthereal/action-upterm@main
-      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      if: inputs.ssh
       with:
         wait-timeout-minutes: 15
 
@@ -212,14 +212,14 @@ jobs:
 
     - name: Upload bin directory
       uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && inputs.bindir == 'true' && !cancelled()
+      if: steps.compile.outputs.status == 'success' && inputs.bindir && !cancelled()
       with:
         name: ${{ inputs.name }}_bin_${{ env.DEVICE_NAME }}_${{ env.BUILD_TIME }}_${{ env.BUILD_NUMBER }}
         path: openwrt/bin
 
     - name: Get environment path
       id: environment
-      if: inputs.bindir == 'true' && !cancelled()
+      if: inputs.bindir && !cancelled()
       run: |
         cd openwrt/bin/
         echo "WORKSPACE_DIR=$PWD" >> $GITHUB_ENV
@@ -247,7 +247,7 @@ jobs:
 
     - name: Organize files
       id: organize
-      if: inputs.artifact == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
+      if: inputs.artifact && steps.compile.outputs.status == 'success' && !cancelled()
       run: |
         cd openwrt/bin/targets/*/*
         rm -rf packages
@@ -263,7 +263,7 @@ jobs:
 
     - name: Upload firmware to release
       uses: softprops/action-gh-release@v2
-      if: inputs.release == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
+      if: inputs.release && steps.compile.outputs.status == 'success' && !cancelled()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
