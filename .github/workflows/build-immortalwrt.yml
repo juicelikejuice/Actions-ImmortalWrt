@@ -182,7 +182,7 @@ jobs:
         ccache: 'true'
         prefix: ${{ github.workspace }}/openwrt
         clean: '${{ env.NOCACHE }}'
-        mixkey: x86-64
+        mixkey: beeconmini-ac5
 
     - name: Load custom feeds
       run: |
@@ -199,9 +199,6 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        [ -e files ] && mv files openwrt/files
-        [ -e "$BUILD_CONFIG" ] && mv "$BUILD_CONFIG" openwrt/.config
-        [ -e "$KERNEL_CONFIG" ] && mv "$KERNEL_CONFIG" "openwrt/target/linux/x86/$KERNEL_CONFIG"
         chmod +x $AFTER_FEED_SH
         cd openwrt
         $GITHUB_WORKSPACE/$AFTER_FEED_SH
