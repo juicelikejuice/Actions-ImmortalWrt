@@ -241,9 +241,9 @@ jobs:
       id: tools
       run: |
         cd openwrt
-        make tools/autoconf/compile -j1
-        make tools/automake/compile -j1
-        make tools/libtool/compile -j1
+        make tools/autoconf/compile -j1 V=s
+        make tools/automake/compile -j1 V=s
+        make tools/libtool/compile -j1 V=s
     - name: Compile the firmware
       id: compile
       run: |
